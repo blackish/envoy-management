@@ -42,6 +42,3 @@ management place for envoy
 6. Использование кластера mongodb в качестве системы хранения настроек узлов
 7. Возможность управления несколькими узлами envoy из единой точки
 8. Управление всем функционалом доступно через web-интерфейс
-
-Ближайшие планы указаны в issues
-https://gitlab.mtscloud.local/alysov/envoy-management/-/issues
