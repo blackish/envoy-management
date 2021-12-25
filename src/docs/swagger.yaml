@@ -1,0 +1,451 @@
+basePath: /api/v1
+info:
+  contact: {}
+  description: envoy manager server
+  title: envoy manager REST API
+  version: "1.0"
+paths:
+  /authz/:
+    get:
+      responses:
+        "200":
+          description: ""
+      summary: get configured authz
+    put:
+      responses:
+        "204":
+          description: ""
+      summary: Create or update authz
+  /authzs3/:
+    get:
+      responses:
+        "200":
+          description: ""
+      summary: get configured authzs3
+    put:
+      responses:
+        "204":
+          description: ""
+      summary: Create or update authz
+  /config/:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Get configured nodes
+  /config/{node}:
+    delete:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Delete configured node
+    put:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Create or update node
+  /config/{node}/clusters:
+    put:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Create or update cluster
+  /config/{node}/clusters/{name}:
+    delete:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      - description: cluster id
+        in: path
+        name: name
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Delete configured cluster
+    get:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      - description: cluster id
+        in: path
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Retrieves clisters configuration
+  /config/{node}/configstatus:
+    get:
+      parameters:
+      - description: node
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+      summary: get node config status
+  /config/{node}/endpoints:
+    put:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Create or update endpoint
+  /config/{node}/endpoints/{name}:
+    delete:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      - description: cluster id
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: priority
+        in: path
+        name: priority
+        required: true
+        type: integer
+      - description: endpoint address
+        in: path
+        name: address
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Delete configured endpoint
+    get:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      - description: cluster id
+        in: path
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Retrieves endpoints configuration
+    put:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Update endpoint cluster
+  /config/{node}/interfaces:
+    delete:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Delete node interface address
+    get:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Get configured node interfaces
+    put:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Create or update node interface address
+  /config/{node}/listeners:
+    put:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Create or update listener
+  /config/{node}/listeners/{name}:
+    delete:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      - description: listener id
+        in: path
+        name: name
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Delete configured listener
+    get:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      - description: listener id
+        in: path
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Retrieves listeners configuration
+  /config/{node}/routes:
+    delete:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Delete configured routes
+    get:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Get configured node routes
+    put:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Create or update node route
+  /config/{node}/secrets:
+    put:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Create or update cluster
+  /config/{node}/secrets/{name}:
+    delete:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      - description: secret id
+        in: path
+        name: name
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Delete configured listener
+    get:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      - description: secret id
+        in: path
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Retrieves listeners configuration
+  /live/nodes:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Retrieves list of worker nodes
+  /live/nodes/{node}/clusters:
+    get:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Retrieves list of clusters on node
+  /live/nodes/{node}/config_dump:
+    get:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Retrieves node config
+  /live/nodes/{node}/listeners:
+    get:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Retrieves list of listeners on node
+  /live/nodes/{node}/logging:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Retrieves logging level
+    put:
+      parameters:
+      - description: node id
+        in: path
+        name: node
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Change loglevel
+  /live/nodes/{node}/sync:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Retrieves worker sync status
+  /ratelimit/{domain}:
+    get:
+      parameters:
+      - description: domain
+        in: path
+        name: domain
+        type: string
+      responses:
+        "200":
+          description: ""
+      summary: get configured ratelimits
+    put:
+      parameters:
+      - description: node id
+        in: path
+        name: domain
+        required: true
+        type: string
+      responses:
+        "204":
+          description: ""
+      summary: Delete rate limit
+swagger: "2.0"

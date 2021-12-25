@@ -1,0 +1,703 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "envoy manager server",
+        "title": "envoy manager REST API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/authz/": {
+            "get": {
+                "summary": "get configured authz",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "summary": "Create or update authz",
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/authzs3/": {
+            "get": {
+                "summary": "get configured authzs3",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "summary": "Create or update authz",
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get configured nodes",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}": {
+            "put": {
+                "summary": "Create or update node",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete configured node",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}/clusters": {
+            "put": {
+                "summary": "Create or update cluster",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}/clusters/{name}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieves clisters configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "cluster id",
+                        "name": "name",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete configured cluster",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "cluster id",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}/configstatus": {
+            "get": {
+                "summary": "get node config status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}/endpoints": {
+            "put": {
+                "summary": "Create or update endpoint",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}/endpoints/{name}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieves endpoints configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "cluster id",
+                        "name": "name",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update endpoint cluster",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete configured endpoint",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "cluster id",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "priority",
+                        "name": "priority",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "endpoint address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}/interfaces": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get configured node interfaces",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "summary": "Create or update node interface address",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete node interface address",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}/listeners": {
+            "put": {
+                "summary": "Create or update listener",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}/listeners/{name}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieves listeners configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "listener id",
+                        "name": "name",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete configured listener",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "listener id",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}/routes": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get configured node routes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "summary": "Create or update node route",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete configured routes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}/secrets": {
+            "put": {
+                "summary": "Create or update cluster",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/config/{node}/secrets/{name}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieves listeners configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "secret id",
+                        "name": "name",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete configured listener",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "secret id",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/live/nodes": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieves list of worker nodes",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/live/nodes/{node}/clusters": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieves list of clusters on node",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/live/nodes/{node}/config_dump": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieves node config",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/live/nodes/{node}/listeners": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieves list of listeners on node",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/live/nodes/{node}/logging": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieves logging level",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Change loglevel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "node",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/live/nodes/{node}/sync": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieves worker sync status",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/ratelimit/{domain}": {
+            "get": {
+                "summary": "get configured ratelimits",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "domain",
+                        "name": "domain",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "summary": "Delete rate limit",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "node id",
+                        "name": "domain",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        }
+    }
+}
