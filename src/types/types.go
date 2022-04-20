@@ -138,6 +138,7 @@ type CommonLbConfigConfigType struct {
 }
 
 type HttpProtocolOptionsConfigType struct {
+	AcceptHttp_10 *bool `json:"acceptHttp10" bson:"acceptHttp10"`
 }
 
 type Http2ProtocolOptionsConfigType struct {
@@ -334,6 +335,7 @@ type FilterTypedConfigType struct {
 	HttpFilters               []HttpFiltersConfigType              `json:"httpFilters" bson:"httpFilters omitempty"`
 	MaxRequestHeadersKb       *int                                 `json:"maxRequestHeadersKb" bson:"maxRequestHeadersKb"`
 	CommonHttpProtocolOptions *CommonHttpProtocolOptionsConfigType `json:"commonHttpProtocolOptions" bson:"commonHttpProtocolOptions"`
+	HttpProtocolOptions       *HttpProtocolOptionsConfigType       `json:"httpProtocolOptions" bson:"httpProtocolOptions"`
 	UpgradeConfigs            []UpgradeConfigConfigType            `json:"upgradeConfigs" bson:"upgradeConfigs"`
 	HashPolicy                []TcpHashPolicyConfigType            `json:"hashPolicy" bson:"hashPolicy"`
 }
