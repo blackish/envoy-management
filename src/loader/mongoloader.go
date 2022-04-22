@@ -195,7 +195,7 @@ func parseListener(l apitypes.ListenerConfigType) *listener.Listener {
 					httpp.HttpProtocolOptions = &core.Http1ProtocolOptions{
 						AcceptHttp_10: true,
 					}
-					if &f.TypedConfig.HttpProtocolOptions.AcceptHttp_10 != nil {
+					if f.TypedConfig.HttpProtocolOptions.AcceptHttp_10 != nil {
 						httpp.HttpProtocolOptions.AcceptHttp_10 = *f.TypedConfig.HttpProtocolOptions.AcceptHttp_10
 					}
 				}
