@@ -190,6 +190,14 @@ func parseListener(l apitypes.ListenerConfigType) *listener.Listener {
 						},
 					},
 				}
+				// HttpProtocolOption
+				httpp.HttpProtocolOptions = &core.Http1ProtocolOptions{
+					AcceptHttp_10: true,
+				}
+				if f.TypedConfig.HttpProtocolOptions != nil && f.TypedConfig.HttpProtocolOptions.AcceptHttp_10 != nil {
+					httpp.HttpProtocolOptions.AcceptHttp_10 = *f.TypedConfig.HttpProtocolOptions.AcceptHttp_10
+				}
+
 				if &f.TypedConfig.UpgradeConfigs != nil {
 					httpp.UpgradeConfigs = make([]*hcm.HttpConnectionManager_UpgradeConfig, 0)
 					for _, uc := range f.TypedConfig.UpgradeConfigs {
