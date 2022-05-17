@@ -2,43 +2,14 @@
 
 management place for envoy
 
-На данный момент реализовано управление следующим функционалом envoy:
+This is the the management server, that control configuration for envoy nodes.
+It's uses go-control-plane for communication with envoy.
+There are 3 major components:
+main.go - ADS server. Uses mongodb as backend.
+ratelimit.go - global ratelimit service, inspired by implementation from Lyft. Uses mongodb for configuration, redis for key/value storage
+als.go - access log collector. Uses elasticsearch for remote logging
+ipmgmt_server.go - client-side daemon, that can be used for IP address and routing manipulation at envoy node side. Uses NetworkManager (nmcli)
 
-1. В части endpoints:
-1.1. Заведение endpoint
-1.2. Группировка endpoints по приоритетам
-1.3. Распределение нагрузки между различными приоритетами в случает отказов endpoints
-2. В части cluster:
-2.1. Типы балансировки нагрузки: Round robin, Least connection, Maglev
-2.2. Tcp Health check
-2.3. HTTP Health check с указание url проверки
-2.4. Настройка пользовательского sni для обращения к endpoint при использовании https
-3. В части Listener:
-3.1. Создание TCP Listener
-3.2. Возможность ограничение буфера на соединение для избежания отказа ноды
-3.3. Создание цепочек фильтров (FilterChain) для обработки различных запросов
-3.3.1. Фильтрация запросов для цепочки по: src ip/prefix, dst ip/prefix, domain
-3.3.2. Включение механизма rate limit для ограничения rps на цепочку
-3.3.3. Создание TCP фильтра для работы в режиме TCP reverse proxy
-3.3.3.1. Логгирование TCP запросов
-3.3.4. Создание HTTP фильтра для работы в режиме HTTP reverse proxy
-3.3.4.1. Логгирование запросов с возможностью указания - какие заголовки добавлять в лог
-3.3.4.2. Создание виртуальных хостов для обработки трафика для различных fqdn
-3.3.4.2.1. В рамках виртуального хоста создание маршрутов для обработки различных запросов
-3.3.4.2.2. Фильтрация запросов для маршрута с использованием: regex, path, prefix
-3.3.4.2.3. В качестве действия для маршрута возможна маршрутизация на cluster совместно с host rewrite, prefix rewrite, regex rewrite
-3.3.4.2.4. В качестве действия для маршрута возможно использовать перенаправление: перенаправление схемы на https (при использовании http listener), host redirect, path redirect, prefix rewrite
-3.3.5. SSL offload
-3.3.5.1. Возможность ограничения максимальной и минимальной версии TLS
-3.3.5.2. Возможность ограничения используемых ciphers
-3.3.5.3. Загрузка цепочек сертификатов, используемых listener
-3.3.5.4. Верификация пользовательских сертификатов на основе загружаемого CA
-4. Управление адресацией и маршрутной информацией
-4.1. Добавление и удаление адресов на интерфейсах
-4.2. Добавление и удаление маршрутной информации.
-5. Управление уровнем логгирования
-5.1. Синхронная выгрузка журналов приложения в elasticsearch
-5.2. Мониторинг рабочих узлов с использованием prometheus и мониторинг их состояния через graphana
-6. Использование кластера mongodb в качестве системы хранения настроек узлов
-7. Возможность управления несколькими узлами envoy из единой точки
-8. Управление всем функционалом доступно через web-интерфейс
+Configuration for all of this components handled by main server. It implements northbound REST API, which can be used for config manipulation.
+Swagger available at <node-ip>:8080/swagger/index.html
+Also there is separate UI project "envoy-frontend", that utilize this api.
