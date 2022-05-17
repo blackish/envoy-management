@@ -159,6 +159,7 @@ type TypedExtensionProtocolOptionsConfigType struct {
 }
 
 type CircuitBreakers_ThresholdsConfigType struct {
+	Priority           int32   `json:"priority" bson:"priority"`
 	MaxConnections     *uint32 `json:"maxConnections" bson:"maxConnections" omitempty`
 	MaxPendingRequests *uint32 `json:"maxPendingRequests" bson:"maxPendingRequests" omitempty`
 	MaxRequests        *uint32 `json:"maxRequests" bson:"maxRequests" omitempty`
