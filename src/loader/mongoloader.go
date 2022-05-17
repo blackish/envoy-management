@@ -768,7 +768,7 @@ func parseCluster(c apitypes.ClusterConfigType) *cluster.Cluster {
 		if c.CircuitBreakers.Thresholds != nil {
 			res.CircuitBreakers.Thresholds = make([]*cluster.CircuitBreakers_Thresholds, 0)
 			var newThreshold *cluster.CircuitBreakers_Thresholds
-			for t := range c.CircuitBreakers.Thresholds {
+			for _, t := range c.CircuitBreakers.Thresholds {
 				newThreshold = &cluster.CircuitBreakers_Thresholds{}
 				if t.MaxConnections != nil {
 					newThreshold.MaxConnections = &wrappers.UInt32Value{Value: *t.MaxConnections}
