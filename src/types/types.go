@@ -153,9 +153,20 @@ type ExplicitHttpConfigConfigType struct {
 }
 
 type TypedExtensionProtocolOptionsConfigType struct {
-	CommonHttpProtocolOptions   *CommonHttpProtocolOptionsConfigType   `json:"commonHttpProtocolOptions" bson:"commonHttpProtocolOptions" omytempty`
+	CommonHttpProtocolOptions   *CommonHttpProtocolOptionsConfigType   `json:"commonHttpProtocolOptions" bson:"commonHttpProtocolOptions" omitempty`
 	UseDownstreamProtocolConfig *UseDownstreamProtocolConfigConfigType `json:"useDownstreamProtocolConfig" bson:"useDownstreamProtocolConfig" omitempty`
 	ExplicitHttpConfig          *ExplicitHttpConfigConfigType          `json:"explicitHttpConfig" bson:"explicitHttpConfig" omitempty`
+}
+
+type CircuitBreakers_ThresholdsConfigType struct {
+	MaxConnections     *uint32 `json:"maxConnections" bson:"maxConnections" omitempty`
+	MaxPendingRequests *uint32 `json:"maxPendingRequests" bson:"maxPendingRequests" omitempty`
+	MaxRequests        *uint32 `json:"maxRequests" bson:"maxRequests" omitempty`
+	MaxRetries         *uint32 `json:"maxRetries" bson:"maxRetries" omitempty`
+}
+
+type CircuitBreakersConfigType struct {
+	Thresholds []CircuitBreakers_ThresholdsConfigType `json:"thresholds" bson:"thresholds" omitempty`
 }
 
 type ClusterConfigType struct {
@@ -171,6 +182,7 @@ type ClusterConfigType struct {
 	MaxRequestsPerConnection      *int                                                `json:"maxRequestsPerConnection" bson:"maxRequestsPerConnection"`
 	CommonHttpProtocolOptions     *CommonHttpProtocolOptionsConfigType                `json:"commonHttpProtocolOptions" bson:"commonHttpProtocolOptions"`
 	TypedExtensionProtocolOptions map[string]*TypedExtensionProtocolOptionsConfigType `json:"typedExtensionProtocolOptions" bson:"typedExtensionProtocolOptions"`
+	CircuitBreakers               *CircuitBreakersConfigType                          `json:"circuitBreakers" bson:"circuitBreakers" omitempty`
 }
 
 type SocketAddressConfigType struct {

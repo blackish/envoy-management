@@ -762,6 +762,31 @@ func parseCluster(c apitypes.ClusterConfigType) *cluster.Cluster {
 			},
 		},
 	}
+	//CircuitBreakers
+	if c.CircuitBreakers != nil {
+		res.CircuitBreakers = &cluster.CircuitBreakers{}
+		if c.CircuitBreakers.Thresholds != nil {
+			res.CircuitBreakers.Thresholds = make([]*cluster.CircuitBreakers_Thresholds, 0)
+			newThreshold := &cluster.CircuitBreakers_Thresholds{}
+			for t := range c.CircuitBreakers.Thresholds {
+				newThreshold = *cluster.CircuitBreakers_Thresholds
+				if t.MaxConnections != nil {
+					newThreshold.MaxConnections = &wrappers.UInt32Value{Value: *t.MaxConnections}
+				}
+				if t.MaxPendingRequests != nil {
+					newThreshold.MaxPendingRequests = &wrappers.UInt32Value{Value: *t.MaxPendingRequests}
+				}
+				if t.MaxRequests != nil {
+					newThreshold.MaxRequests = &wrappers.UInt32Value{Value: *t.MaxRequests}
+				}
+				if t.MaxRetries != nil {
+					newThreshold.MaxRetries = &wrappers.UInt32Value{Value: *t.MaxRetries}
+				}
+				res.CirtuitBreakers.Thresholds = append(res.CircuitBreakers.Thresholds, newThreshold)
+			}
+		}
+	}
+
 	//protocol options extension
 	protoopts := &upstreamprotoopts.HttpProtocolOptions{}
 	protoopts.UpstreamProtocolOptions = &upstreamprotoopts.HttpProtocolOptions_UseDownstreamProtocolConfig{UseDownstreamProtocolConfig: &upstreamprotoopts.HttpProtocolOptions_UseDownstreamHttpConfig{}}
