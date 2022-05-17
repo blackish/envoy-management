@@ -782,7 +782,7 @@ func parseCluster(c apitypes.ClusterConfigType) *cluster.Cluster {
 				if t.MaxRetries != nil {
 					newThreshold.MaxRetries = &wrappers.UInt32Value{Value: *t.MaxRetries}
 				}
-				res.CirtuitBreakers.Thresholds = append(res.CircuitBreakers.Thresholds, newThreshold)
+				res.CircuitBreakers.Thresholds = append(res.CircuitBreakers.Thresholds, newThreshold)
 			}
 		}
 	}
