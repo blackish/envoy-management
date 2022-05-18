@@ -755,7 +755,8 @@ func parseCluster(c apitypes.ClusterConfigType) *cluster.Cluster {
 		ClusterDiscoveryType: &cluster.Cluster_Type{Type: cluster.Cluster_EDS},
 		EdsClusterConfig: &cluster.Cluster_EdsClusterConfig{
 			EdsConfig: &core.ConfigSource{
-				ResourceApiVersion: core.ApiVersion_V3,
+				ResourceApiVersion:  core.ApiVersion_V3,
+				InitialFetchTimeout: ptypes.DurationProto(0),
 				ConfigSourceSpecifier: &core.ConfigSource_Ads{
 					Ads: &core.AggregatedConfigSource{},
 				},
