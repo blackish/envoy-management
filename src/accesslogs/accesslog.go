@@ -15,6 +15,7 @@ import (
 
 	slog "github.com/sirupsen/logrus"
 
+	ch "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
@@ -30,33 +31,33 @@ func (logger logger) Errorf(format string, args ...interface{}) {
 }
 
 type HTTPLogEntry struct {
-	Method                      string    `json:"method"`
-	Scheme                      string    `json:"scheme"`
-	Host                        string    `json:"host"`
-	Path                        string    `json:"path"`
-	UserAgent                   string    `json:"user.agent"`
-	Referer                     string    `json:"referer"`
-	RequestId                   string    `json:"request.id"`
-	RequestHeaderBytes          uint64    `json:"request.header.bytes"`
-	RequestHeaders              string    `json:"request.header.content"`
-	RequestBodyBytes            uint64    `json:"request.body.bytes"`
-	ResponseCode                uint32    `json:"response.code"`
-	ResponseHeaderBytes         uint64    `json:"response.header.bytes"`
-	ResponseHeaders             string    `json:"response.header.content"`
-	ResponseBodyBytes           uint64    `json:"response.body.bytes"`
-	ResponseDetails             string    `json:"response.details"`
-	DownstreamRemoteAddress     string    `json:"downstream.address"`
-	StartTime                   time.Time `json:"start.time"`
-	TimeToLastRxByte            uint32    `json:"time.toLastRxByte"`
-	TimeToFirstUpstreamTxByte   uint32    `json:"time.toFirstUpstreamTxByte"`
-	TimeToLastUpstreamTxByte    uint32    `json:"time.toLastUpstreamTxByte"`
-	TimeToFirstUpstreamRxByte   uint32    `json:"time.tiFirstUpstreamRxByte"`
-	TimeToLastUpstreamRxByte    uint32    `json:"time.toLastUpstreamRxByte"`
-	TimeToFirstDownstreamTxByte uint32    `json:"time.toFirstDownstreamTxByte"`
-	TimeToLastDownstreamTxByte  uint32    `json:"time.toLastDownstreamTxByte"`
-	UpstreamRemoteAddress       string    `json:"upstream.address"`
-	UpstreamCluster             string    `json:"upstream.cluster"`
-	RouteName                   string    `json:"route.name"`
+	Method                      string            `json:"method"`
+	Scheme                      string            `json:"scheme"`
+	Host                        string            `json:"host"`
+	Path                        string            `json:"path"`
+	UserAgent                   string            `json:"user.agent"`
+	Referer                     string            `json:"referer"`
+	RequestId                   string            `json:"request.id"`
+	RequestHeaderBytes          uint64            `json:"request.header.bytes"`
+	RequestHeaders              map[string]string `json:"request.header.content"`
+	RequestBodyBytes            uint64            `json:"request.body.bytes"`
+	ResponseCode                uint32            `json:"response.code"`
+	ResponseHeaderBytes         uint64            `json:"response.header.bytes"`
+	ResponseHeaders             map[string]string `json:"response.header.content"`
+	ResponseBodyBytes           uint64            `json:"response.body.bytes"`
+	ResponseDetails             string            `json:"response.details"`
+	DownstreamRemoteAddress     string            `json:"downstream.address"`
+	StartTime                   time.Time         `json:"start.time"`
+	TimeToLastRxByte            uint32            `json:"time.toLastRxByte"`
+	TimeToFirstUpstreamTxByte   uint32            `json:"time.toFirstUpstreamTxByte"`
+	TimeToLastUpstreamTxByte    uint32            `json:"time.toLastUpstreamTxByte"`
+	TimeToFirstUpstreamRxByte   uint32            `json:"time.tiFirstUpstreamRxByte"`
+	TimeToLastUpstreamRxByte    uint32            `json:"time.toLastUpstreamRxByte"`
+	TimeToFirstDownstreamTxByte uint32            `json:"time.toFirstDownstreamTxByte"`
+	TimeToLastDownstreamTxByte  uint32            `json:"time.toLastDownstreamTxByte"`
+	UpstreamRemoteAddress       string            `json:"upstream.address"`
+	UpstreamCluster             string            `json:"upstream.cluster"`
+	RouteName                   string            `json:"route.name"`
 }
 
 type TCPLogEntry struct {
@@ -73,48 +74,133 @@ type TCPLogEntry struct {
 	UpstreamCluster             string    `json:"upstream.cluster"`
 }
 
-// AccessLogService buffers access logs from the remote Envoy nodes.
-type AccessLogServiceServer struct {
+type BackendType int
+
+const (
+	ES BackendType = 0
+	CH BackendType = 1
+)
+
+type LogWriter struct {
 	Es *elasticsearch.Client
 	BI esutil.BulkIndexer
+	BE BackendType
+	Ch ch.Conn
 }
 
-func (svc *AccessLogServiceServer) Init(endpoint string, u string, p string, w int) {
-	retryBackoff := backoff.NewExponentialBackOff()
-	esConfig := &elasticsearch.Config{
-		Addresses:     strings.Split(endpoint, ","),
-		RetryOnStatus: []int{502, 503, 504, 429},
-		RetryBackoff: func(i int) time.Duration {
-			if i == 1 {
-				retryBackoff.Reset()
-			}
-			return retryBackoff.NextBackOff()
-		},
-		MaxRetries: 5,
+func (lw *LogWriter) Init(endpoint string, u string, p string, w int, back string) {
+	if back == "clickhouse" {
+		lw.BE = CH
+	} else {
+		lw.BE = ES
 	}
+	if lw.BE == ES {
+		retryBackoff := backoff.NewExponentialBackOff()
+		esConfig := &elasticsearch.Config{
+			Addresses:     strings.Split(endpoint, ","),
+			RetryOnStatus: []int{502, 503, 504, 429},
+			RetryBackoff: func(i int) time.Duration {
+				if i == 1 {
+					retryBackoff.Reset()
+				}
+				return retryBackoff.NextBackOff()
+			},
+			MaxRetries: 5,
+		}
+		if len(u) > 0 && len(p) > 0 {
+			esConfig.Username = u
+			esConfig.Password = p
+		}
+		es, err := elasticsearch.NewClient(*esConfig)
+		if err != nil {
+			slog.Fatalf("Error creating the client: %s", err)
+		}
+		lw.Es = es
+		bi, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
+			Index:         "envoy",          // The default index name
+			Client:        lw.Es,            // The Elasticsearch client
+			NumWorkers:    w,                // The number of worker goroutines
+			FlushBytes:    int(5248000),     // The flush threshold in bytes
+			FlushInterval: 30 * time.Second, // The periodic flush interval
+		})
+		if err != nil {
+			slog.Fatalf("Error creating the indexer: %s", err)
+		}
+		lw.BI = bi
+	} else if lw.BE == CH {
+		Cho, err := ch.Open(&ch.Options{
+			Addr: []string{endpoint},
+			Auth: ch.Auth{
+				Database: "envoy",
+				Username: u,
+				Password: p,
+			},
+			//Debug:           true,
+			DialTimeout:     time.Second,
+			MaxOpenConns:    w,
+			MaxIdleConns:    5,
+			ConnMaxLifetime: time.Hour,
+		})
+		if err != nil {
+			slog.Fatalf("Error creating the client: %s", err)
+		}
+		lw.Ch = Cho
+	}
+}
 
-	if len(u) > 0 && len(p) > 0 {
-		esConfig.Username = u
-		esConfig.Password = p
+func (lw *LogWriter) WriteHTTPLog(l HTTPLogEntry) {
+	if lw.BE == ES {
+		if data, err := json.Marshal(l); err == nil {
+			lw.BI.Add(context.Background(),
+				esutil.BulkIndexerItem{
+					Index:  "envoy-http-" + fmt.Sprintf("%d-%.2d-%.2d-%.2d", time.Now().Year(), time.Now().Month(), time.Now().Day(), time.Now().Hour()),
+					Action: "index",
+					Body:   bytes.NewReader(data),
+				},
+			)
+		}
+	} else if lw.BE == CH {
+		qstring := fmt.Sprintf("INSERT INTO http_log VALUES ('%s','%s','%s','%s','%s','%s','%s',%d,{", l.Method, l.Scheme, l.Host, l.Path, l.UserAgent, l.Referer, l.RequestId, l.RequestHeaderBytes)
+		for k, v := range l.RequestHeaders {
+			qstring += fmt.Sprintf("'%s':'%s',", k, v)
+		}
+		qstring = strings.TrimRight(qstring, ",")
+		qstring += fmt.Sprintf("},%d,%d,%d,{", l.RequestBodyBytes, l.ResponseCode, l.ResponseHeaderBytes)
+		for k, v := range l.ResponseHeaders {
+			qstring += fmt.Sprintf("'%s':'%s',", k, v)
+		}
+		qstring = strings.TrimRight(qstring, ",")
+		qstring += fmt.Sprintf("},%d,'%s','%s',%d,%d,%d,%d,%d,%d,%d,%d,'%s','%s','%s')", l.ResponseBodyBytes, l.ResponseDetails, l.DownstreamRemoteAddress, l.StartTime.Format(time.UnixDate), l.TimeToLastRxByte, l.TimeToFirstUpstreamTxByte, l.TimeToLastUpstreamTxByte, l.TimeToFirstUpstreamRxByte, l.TimeToLastUpstreamRxByte, l.TimeToFirstDownstreamTxByte, l.TimeToLastDownstreamTxByte, l.UpstreamRemoteAddress, l.UpstreamCluster, l.RouteName)
+		_ = lw.Ch.AsyncInsert(context.Background(), qstring, false)
 	}
-	es, err := elasticsearch.NewClient(*esConfig)
+}
 
-	if err != nil {
-		slog.Fatalf("Error creating the client: %s", err)
+func (lw *LogWriter) WriteTCPLog(l TCPLogEntry) {
+	if lw.BE == ES {
+		if data, err := json.Marshal(l); err == nil {
+			lw.BI.Add(context.Background(),
+				esutil.BulkIndexerItem{
+					// Action field configures the operation to perform (index, create, delete, update)
+					Index:  "envoy-tcp-" + fmt.Sprintf("%d-%.2d-%.2d", time.Now().Year(), time.Now().Month(), time.Now().Day()),
+					Action: "index",
+					// Body is an `io.Reader` with the payload
+					Body: bytes.NewReader(data),
+				},
+			)
+		}
+	} else if lw.BE == CH {
+		qstring := fmt.Sprintf("INSERT INTO tcp_log VALUES ('%s',%d,%d,%d,%d,%d,%d,%d,%d,'%s','%s')", l.DownstreamRemoteAddress, l.StartTime.Format(time.UnixDate), l.TimeToLastRxByte, l.TimeToFirstUpstreamTxByte, l.TimeToLastUpstreamTxByte, l.TimeToFirstUpstreamRxByte, l.TimeToLastUpstreamRxByte, l.TimeToFirstDownstreamTxByte, l.TimeToLastDownstreamTxByte, l.UpstreamRemoteAddress, l.UpstreamCluster)
+		_ = lw.Ch.AsyncInsert(context.Background(), qstring, false)
 	}
-	svc.Es = es
-	bi, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
-		Index:         "envoy",          // The default index name
-		Client:        svc.Es,           // The Elasticsearch client
-		NumWorkers:    w,                // The number of worker goroutines
-		FlushBytes:    int(5248000),     // The flush threshold in bytes
-		FlushInterval: 30 * time.Second, // The periodic flush interval
+}
 
-	})
-	if err != nil {
-		slog.Fatalf("Error creating the indexer: %s", err)
-	}
-	svc.BI = bi
+// AccessLogService buffers access logs from the remote Envoy nodes.
+type AccessLogServiceServer struct {
+	LW LogWriter
+}
+
+func (svc *AccessLogServiceServer) Init(endpoint string, u string, p string, w int, back string) {
+	svc.LW.Init(endpoint, u, p, w, back)
 }
 
 // StreamAccessLogs implements the access log service.
@@ -145,27 +231,36 @@ func (svc *AccessLogServiceServer) StreamAccessLogs(stream als.AccessLogService_
 					}
 
 					logEntry := HTTPLogEntry{
-						Method:              core.RequestMethod_name[int32(req.RequestMethod)],
-						Scheme:              req.Scheme,
-						Host:                req.Authority,
-						Path:                req.Path,
-						UserAgent:           req.UserAgent,
-						Referer:             req.Referer,
-						RequestId:           req.RequestId,
-						RequestHeaderBytes:  req.RequestHeadersBytes,
-						RequestBodyBytes:    req.RequestBodyBytes,
-						ResponseCode:        resp.ResponseCode.Value,
-						ResponseHeaderBytes: resp.ResponseHeadersBytes,
-						ResponseBodyBytes:   resp.ResponseBodyBytes,
-						ResponseDetails:     resp.ResponseCodeDetails,
-						UpstreamCluster:     common.UpstreamCluster,
-						RouteName:           common.RouteName,
+						Method:                      core.RequestMethod_name[int32(req.RequestMethod)],
+						Scheme:                      req.Scheme,
+						Host:                        req.Authority,
+						Path:                        req.Path,
+						UserAgent:                   req.UserAgent,
+						Referer:                     req.Referer,
+						RequestId:                   req.RequestId,
+						RequestHeaderBytes:          req.RequestHeadersBytes,
+						RequestBodyBytes:            req.RequestBodyBytes,
+						ResponseCode:                resp.ResponseCode.Value,
+						ResponseHeaderBytes:         resp.ResponseHeadersBytes,
+						ResponseBodyBytes:           resp.ResponseBodyBytes,
+						ResponseDetails:             resp.ResponseCodeDetails,
+						UpstreamCluster:             common.UpstreamCluster,
+						RouteName:                   common.RouteName,
+						RequestHeaders:              make(map[string]string),
+						ResponseHeaders:             make(map[string]string),
+						TimeToLastRxByte:            0,
+						TimeToFirstUpstreamTxByte:   0,
+						TimeToLastUpstreamTxByte:    0,
+						TimeToFirstUpstreamRxByte:   0,
+						TimeToLastUpstreamRxByte:    0,
+						TimeToFirstDownstreamTxByte: 0,
+						TimeToLastDownstreamTxByte:  0,
 					}
 					for k, v := range req.RequestHeaders {
-						logEntry.RequestHeaders += k + ":" + v
+						logEntry.RequestHeaders[k] = v
 					}
 					for k, v := range resp.ResponseHeaders {
-						logEntry.ResponseHeaders += k + ":" + v
+						logEntry.ResponseHeaders[k] = v
 					}
 					if common.DownstreamRemoteAddress != nil {
 						if ad, ok := common.DownstreamRemoteAddress.Address.(*core.Address_SocketAddress); ok {
@@ -201,17 +296,7 @@ func (svc *AccessLogServiceServer) StreamAccessLogs(stream als.AccessLogService_
 					if common.TimeToLastDownstreamTxByte != nil {
 						logEntry.TimeToLastDownstreamTxByte = uint32(common.TimeToLastDownstreamTxByte.Seconds)*1000000000 + uint32(common.TimeToLastDownstreamTxByte.Nanos)
 					}
-					if data, err := json.Marshal(logEntry); err == nil {
-						svc.BI.Add(context.Background(),
-							esutil.BulkIndexerItem{
-								// Action field configures the operation to perform (index, create, delete, update)
-								Index:  "envoy-http-" + fmt.Sprintf("%d-%.2d-%.2d-%.2d", time.Now().Year(), time.Now().Month(), time.Now().Day(), time.Now().Hour()),
-								Action: "index",
-								// Body is an `io.Reader` with the payload
-								Body: bytes.NewReader(data),
-							},
-						)
-					}
+					svc.LW.WriteHTTPLog(logEntry)
 				}
 			}
 		case *als.StreamAccessLogsMessage_TcpLogs:
@@ -219,7 +304,15 @@ func (svc *AccessLogServiceServer) StreamAccessLogs(stream als.AccessLogService_
 				if entry != nil {
 					common := entry.CommonProperties
 					logEntry := TCPLogEntry{
-						UpstreamCluster: common.UpstreamCluster,
+						UpstreamCluster:             common.UpstreamCluster,
+						DownstreamRemoteAddress:     "",
+						TimeToLastRxByte:            0,
+						TimeToFirstUpstreamTxByte:   0,
+						TimeToLastUpstreamTxByte:    0,
+						TimeToFirstUpstreamRxByte:   0,
+						TimeToLastUpstreamRxByte:    0,
+						TimeToFirstDownstreamTxByte: 0,
+						TimeToLastDownstreamTxByte:  0,
 					}
 					if common == nil {
 						common = &alf.AccessLogCommon{}
@@ -258,17 +351,7 @@ func (svc *AccessLogServiceServer) StreamAccessLogs(stream als.AccessLogService_
 					if common.TimeToLastDownstreamTxByte != nil {
 						logEntry.TimeToLastDownstreamTxByte = uint32(common.TimeToLastDownstreamTxByte.Seconds)*1000000000 + uint32(common.TimeToLastDownstreamTxByte.Nanos)
 					}
-					if data, err := json.Marshal(logEntry); err == nil {
-						svc.BI.Add(context.Background(),
-							esutil.BulkIndexerItem{
-								// Action field configures the operation to perform (index, create, delete, update)
-								Index:  "envoy-tcp-" + fmt.Sprintf("%d-%.2d-%.2d", time.Now().Year(), time.Now().Month(), time.Now().Day()),
-								Action: "index",
-								// Body is an `io.Reader` with the payload
-								Body: bytes.NewReader(data),
-							},
-						)
-					}
+					svc.LW.WriteTCPLog(logEntry)
 				}
 			}
 		}

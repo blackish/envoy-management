@@ -8,6 +8,7 @@ require (
 	authzs3 v0.0.0
 	docs v0.0.0
 	drivers v0.0.0
+	github.com/ClickHouse/clickhouse-go/v2 v2.2.0 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/coocood/freecache v1.1.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
@@ -26,7 +27,6 @@ require (
 	github.com/urfave/cli v1.22.5 // indirect
 	go.mongodb.org/mongo-driver v1.4.4
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/tools v0.1.4 // indirect
 	google.golang.org/grpc v1.27.0
 	ipmgmt v0.0.0

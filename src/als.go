@@ -33,6 +33,8 @@ var (
 	grpcMaxConcurrentStreams uint
 
 	workers int
+
+	back string
 )
 
 func init() {
@@ -43,6 +45,7 @@ func init() {
 	flag.StringVar(&elasticPassword, "password", "", "Elastic password")
 	flag.UintVar(&grpcMaxConcurrentStreams, "grpcmaxstreams", 100000, "grpc max concurrent streams")
 	flag.IntVar(&workers, "workers", 10, "Number of elasticsearch workers")
+	flag.StringVar(&back, "backend", "", "elasticsearch (default) or clickhouse")
 }
 
 //const grpcMaxConcurrentStreams = 100000
@@ -79,7 +82,7 @@ func main() {
 	log.Printf("Starting log service")
 
 	als := &myals.AccessLogServiceServer{}
-	als.Init(elasticEndpoint, elasticUsername, elasticPassword, workers)
+	als.Init(elasticEndpoint, elasticUsername, elasticPassword, workers, back)
 	go RunAccessLogServer(ctx, als, alsPort)
 	<-ctx.Done()
 }
