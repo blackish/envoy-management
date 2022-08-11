@@ -171,7 +171,10 @@ func (lw *LogWriter) WriteHTTPLog(l HTTPLogEntry) {
 		}
 		qstring = strings.TrimRight(qstring, ",")
 		qstring += fmt.Sprintf("},%d,'%s','%s',%d,%d,%d,%d,%d,%d,%d,%d,'%s','%s','%s')", l.ResponseBodyBytes, l.ResponseDetails, l.DownstreamRemoteAddress, l.StartTime.Format(time.UnixDate), l.TimeToLastRxByte, l.TimeToFirstUpstreamTxByte, l.TimeToLastUpstreamTxByte, l.TimeToFirstUpstreamRxByte, l.TimeToLastUpstreamRxByte, l.TimeToFirstDownstreamTxByte, l.TimeToLastDownstreamTxByte, l.UpstreamRemoteAddress, l.UpstreamCluster, l.RouteName)
-		_ = lw.Ch.AsyncInsert(context.Background(), qstring, false)
+		err := lw.Ch.AsyncInsert(context.Background(), qstring, false)
+		if err != nil {
+			slog.Print(err)
+		}
 	}
 }
 
@@ -190,7 +193,10 @@ func (lw *LogWriter) WriteTCPLog(l TCPLogEntry) {
 		}
 	} else if lw.BE == CH {
 		qstring := fmt.Sprintf("INSERT INTO tcp_log VALUES ('%s',%d,%d,%d,%d,%d,%d,%d,%d,'%s','%s')", l.DownstreamRemoteAddress, l.StartTime.Format(time.UnixDate), l.TimeToLastRxByte, l.TimeToFirstUpstreamTxByte, l.TimeToLastUpstreamTxByte, l.TimeToFirstUpstreamRxByte, l.TimeToLastUpstreamRxByte, l.TimeToFirstDownstreamTxByte, l.TimeToLastDownstreamTxByte, l.UpstreamRemoteAddress, l.UpstreamCluster)
-		_ = lw.Ch.AsyncInsert(context.Background(), qstring, false)
+		err := lw.Ch.AsyncInsert(context.Background(), qstring, false)
+		if err != nil {
+			slog.Print(err)
+		}
 	}
 }
 
