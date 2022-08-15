@@ -35,14 +35,17 @@ var (
 	workers int
 
 	back string
+
+	clickhouse string
 )
 
 func init() {
 	flag.BoolVar(&debug, "debug", true, "Use debug logging")
 	flag.UintVar(&alsPort, "als", 18090, "Accesslog server port")
 	flag.StringVar(&elasticEndpoint, "elastic", "http://10.99.6.19:9200", "Elastic endpoints, comma separated")
-	flag.StringVar(&elasticUsername, "username", "", "Elastic usename")
-	flag.StringVar(&elasticPassword, "password", "", "Elastic password")
+	flag.StringVar(&elasticEndpoint, "clickhouse", "127.0.0.1:9000", "Clickhouse endpoints, comma separated")
+	flag.StringVar(&elasticUsername, "username", "", "Backend usename")
+	flag.StringVar(&elasticPassword, "password", "", "Backend password")
 	flag.UintVar(&grpcMaxConcurrentStreams, "grpcmaxstreams", 100000, "grpc max concurrent streams")
 	flag.IntVar(&workers, "workers", 10, "Number of elasticsearch workers")
 	flag.StringVar(&back, "backend", "", "elasticsearch (default) or clickhouse")
@@ -82,7 +85,7 @@ func main() {
 	log.Printf("Starting log service")
 
 	als := &myals.AccessLogServiceServer{}
-	als.Init(elasticEndpoint, elasticUsername, elasticPassword, workers, back)
+	als.Init(elasticEndpoint, clickhouse, elasticUsername, elasticPassword, workers, back)
 	go RunAccessLogServer(ctx, als, alsPort)
 	<-ctx.Done()
 }
