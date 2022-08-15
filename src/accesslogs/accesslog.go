@@ -88,7 +88,7 @@ type LogWriter struct {
 	Ch ch.Conn
 }
 
-func (lw *LogWriter) Init(endpoint string, u string, p string, w int, back string) {
+func (lw *LogWriter) Init(endpoint string, cls string, u string, p string, w int, back string) {
 	if back == "clickhouse" {
 		lw.BE = CH
 	} else {
@@ -129,7 +129,7 @@ func (lw *LogWriter) Init(endpoint string, u string, p string, w int, back strin
 		lw.BI = bi
 	} else if lw.BE == CH {
 		Cho, err := ch.Open(&ch.Options{
-			Addr: []string{endpoint},
+			Addr: strings.Split(cls, ","),
 			Auth: ch.Auth{
 				Database: "envoy",
 				Username: u,
@@ -205,8 +205,8 @@ type AccessLogServiceServer struct {
 	LW LogWriter
 }
 
-func (svc *AccessLogServiceServer) Init(endpoint string, u string, p string, w int, back string) {
-	svc.LW.Init(endpoint, u, p, w, back)
+func (svc *AccessLogServiceServer) Init(endpoint string, clickhouse string, u string, p string, w int, back string) {
+	svc.LW.Init(endpoint, clickhouse, u, p, w, back)
 }
 
 // StreamAccessLogs implements the access log service.
