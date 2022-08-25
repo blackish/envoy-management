@@ -230,6 +230,7 @@ func main() {
 		v1.GET("/nodes/:node/logging", rapi.GetLiveLogging)
 		v1.GET("/nodes/:node/sync", rapi.GetLiveSyncStatus)
 		v1.PUT("/nodes/:node/logging", rapi.PutLiveLogging)
+		v1.OPTIONS("/nodes/:node/logging", rapi.OptionsLiveLogging)
 	}
 	v1config := r.Group("/api/v1/config")
 	{
