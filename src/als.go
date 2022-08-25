@@ -43,7 +43,7 @@ func init() {
 	flag.BoolVar(&debug, "debug", true, "Use debug logging")
 	flag.UintVar(&alsPort, "als", 18090, "Accesslog server port")
 	flag.StringVar(&elasticEndpoint, "elastic", "http://10.99.6.19:9200", "Elastic endpoints, comma separated")
-	flag.StringVar(&elasticEndpoint, "clickhouse", "127.0.0.1:9000", "Clickhouse endpoints, comma separated")
+	flag.StringVar(&clickhouse, "clickhouse", "127.0.0.1:9000", "Clickhouse endpoints, comma separated")
 	flag.StringVar(&elasticUsername, "username", "", "Backend usename")
 	flag.StringVar(&elasticPassword, "password", "", "Backend password")
 	flag.UintVar(&grpcMaxConcurrentStreams, "grpcmaxstreams", 100000, "grpc max concurrent streams")
