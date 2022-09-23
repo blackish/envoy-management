@@ -1591,3 +1591,12 @@ func OptionsConfigStatus(ctx *gin.Context) {
 	ctx.Status(204)
 	return
 }
+func OptionsLiveLogging(ctx *gin.Context) {
+	log.WithFields(log.Fields{"Module": "RAPI"}).Debug("OPTIONS configftatus")
+	ctx.Header("Access-Control-Allow-Origin", "*")
+	ctx.Header("Access-Control-Allow-Methods", "GET, PUT, OPTIONS, DELETE")
+	ctx.Header("Access-Control-Allow-Headers", "content-type")
+	ctx.Header("Content-Type", "text/plain")
+	ctx.Status(204)
+	return
+}
