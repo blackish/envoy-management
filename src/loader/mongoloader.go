@@ -585,7 +585,8 @@ func parseListener(l apitypes.ListenerConfigType) *listener.Listener {
 					tls.CommonTlsContext.TlsCertificateSdsSecretConfigs = append(tls.CommonTlsContext.TlsCertificateSdsSecretConfigs, &auth.SdsSecretConfig{
 						Name: sds.Name,
 						SdsConfig: &core.ConfigSource{
-							ResourceApiVersion: core.ApiVersion_V3,
+							InitialFetchTimeout: ptypes.DurationProto(0),
+							ResourceApiVersion:  core.ApiVersion_V3,
 							ConfigSourceSpecifier: &core.ConfigSource_Ads{
 								Ads: &core.AggregatedConfigSource{},
 							},
