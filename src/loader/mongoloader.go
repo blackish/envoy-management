@@ -16,6 +16,7 @@ import (
 	als "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
 	authz "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ext_authz/v3"
 	lrf "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ratelimit/v3"
+	router "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/router/v3"
 	lftls "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/listener/tls_inspector/v3"
 	hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	lrm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/local_ratelimit/v3"
@@ -277,7 +278,13 @@ func parseListener(l apitypes.ListenerConfigType) *listener.Listener {
 						}
 					}
 				}
-				httpp.HttpFilters = append(httpp.HttpFilters, &hcm.HttpFilter{Name: "envoy.filters.http.router"})
+				rtr := &router.Router{}
+				mt, _ := ptypes.MarshalAny(rtr)
+				httpp.HttpFilters = append(httpp.HttpFilters, &hcm.HttpFilter{
+					Name: "envoy.filters.http.router",
+					ConfigType: &hcm.HttpFilter_TypedConfig{
+						TypedConfig: mt},
+				})
 				if f.TypedConfig.CommonHttpProtocolOptions != nil {
 					httpp.CommonHttpProtocolOptions = &core.HttpProtocolOptions{}
 					if f.TypedConfig.CommonHttpProtocolOptions.MaxHeadersCount != nil {
@@ -566,7 +573,7 @@ func parseListener(l apitypes.ListenerConfigType) *listener.Listener {
 						}
 					}
 				}
-				mt, _ := ptypes.MarshalAny(httpp)
+				mt, _ = ptypes.MarshalAny(httpp)
 				cfc.Filters = append(cfc.Filters, &listener.Filter{
 					Name: wellknown.HTTPConnectionManager,
 					ConfigType: &listener.Filter_TypedConfig{

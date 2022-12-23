@@ -14,7 +14,9 @@ import (
 	"github.com/swaggo/gin-swagger"
 
 	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	types "github.com/envoyproxy/go-control-plane/pkg/cache/types"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+	resource "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	xds "github.com/envoyproxy/go-control-plane/pkg/server/v3"
 
 	log "github.com/sirupsen/logrus"
@@ -96,7 +98,7 @@ func (cb *callbacks) OnStreamRequest(i int64, req *discovery.DiscoveryRequest) e
 	_, _ = drivers.Cli.Database("envoy").Collection("workers").UpdateOne(ctxTimeout, bson.M{"name": req.Node.Id}, bson.M{"$set": bson.M{"version": req.VersionInfo, "status": req.ErrorDetail.String(), "updated": time.Now().Format("Mon Jan 2 15:04:05 MST 2006")}}, ups.SetUpsert(true))
 	return nil
 }
-func (cb *callbacks) OnStreamResponse(i int64, req *discovery.DiscoveryRequest, res *discovery.DiscoveryResponse) {
+func (cb *callbacks) OnStreamResponse(ctx context.Context, id int64, req *discovery.DiscoveryRequest, res *discovery.DiscoveryResponse) {
 	log.Debugf("OnStreamResponse...")
 }
 func (cb *callbacks) OnFetchRequest(ctx context.Context, req *discovery.DiscoveryRequest) error {
@@ -106,7 +108,22 @@ func (cb *callbacks) OnFetchRequest(ctx context.Context, req *discovery.Discover
 	_, _ = drivers.Cli.Database("envoy").Collection("workers").UpdateOne(ctxTimeout, bson.M{"name": req.Node.Id}, bson.M{"$set": bson.M{"version": req.VersionInfo, "status": req.ErrorDetail.String(), "updated": time.Now().Format("Mon Jan 2 15:04:05 MST 2006")}}, ups.SetUpsert(true))
 	return nil
 }
+func (cb *callbacks) OnStreamDeltaRequest(id int64, req *discovery.DeltaDiscoveryRequest) error {
+	log.Debugf("OnStreamDeltaRequest %s", req.Node.Id)
+	return nil
+}
+func (cb *callbacks) OnStreamDeltaResponse(id int64, req *discovery.DeltaDiscoveryRequest, res *discovery.DeltaDiscoveryResponse) {
+	log.Debugf("OnStreamDeltaResponse...")
+}
+func (cb *callbacks) OnDeltaStreamOpen(ctx context.Context, id int64, typ string) error {
+	log.Debugf("OnDeltaStreamOpen %d open for %s", id, typ)
+	return nil
+}
 func (cb *callbacks) OnFetchResponse(*discovery.DiscoveryRequest, *discovery.DiscoveryResponse) {}
+
+func (cb *callbacks) OnDeltaStreamClosed(id int64) {
+	log.Debugf("OnDeltaStreamClosed %d closed", id)
+}
 
 type callbacks struct {
 }
@@ -125,12 +142,19 @@ func (h Hasher) ID(node *core.Node) string {
 
 func loadNodeConfig(ctx context.Context, node string, v string) {
 	if l, c, e, s, err := myload.LoadNode(ctx, node); err == nil {
-		snap := cache.NewSnapshot(v, e, c, nil, l, nil, s)
-		if err := snap.Consistent(); err == nil {
-			log.Debug("Snapshot consistent")
-			config.SetSnapshot(node, snap)
-		} else {
-			log.Debugf("Config %s inconsistent for node %s", v, node)
+		configMap := make(map[string][]types.Resource)
+		configMap[resource.EndpointType] = e
+		configMap[resource.ClusterType] = c
+		configMap[resource.ListenerType] = l
+		configMap[resource.SecretType] = s
+		if snap, err := cache.NewSnapshot(v, configMap); err == nil {
+			//snap := cache.NewSnapshot(v, e, c, nil, l, nil, s)
+			if err := snap.Consistent(); err == nil {
+				log.Debug("Snapshot consistent")
+				config.SetSnapshot(ctx, node, snap)
+			} else {
+				log.Debugf("Config %s inconsistent for node %s", v, node)
+			}
 		}
 	} else {
 		log.Debugf("Failed to load config for node %s", node)
