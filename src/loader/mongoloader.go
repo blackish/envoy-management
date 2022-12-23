@@ -368,39 +368,18 @@ func parseListener(l apitypes.ListenerConfigType) *listener.Listener {
 					for _, r := range vh.Routes {
 						routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes = append(routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes, &route.Route{Name: r.Name})
 						lastRoute := len(routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes) - 1
-						if r.Match.Prefix != nil {
-							routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match = &route.RouteMatch{PathSpecifier: &route.RouteMatch_Prefix{Prefix: *r.Match.Prefix}}
-						}
-						if r.Match.Path != nil {
-							routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match = &route.RouteMatch{PathSpecifier: &route.RouteMatch_Path{Path: *r.Match.Path}}
-						}
-						if r.Match.Regex != nil {
-							routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match = &route.RouteMatch{
-								PathSpecifier: &route.RouteMatch_SafeRegex{
-									SafeRegex: &matcher.RegexMatcher{
-										Regex: r.Match.Regex.Regex,
-										EngineType: &matcher.RegexMatcher_GoogleRe2{
-											GoogleRe2: &matcher.RegexMatcher_GoogleRE2{
-												MaxProgramSize: &wrappers.UInt32Value{
-													Value: 32,
-												},
-											},
-										},
-									},
-								},
+						if r.Match != nil {
+							if r.Match.Prefix != nil {
+								routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match = &route.RouteMatch{PathSpecifier: &route.RouteMatch_Prefix{Prefix: *r.Match.Prefix}}
 							}
-						}
-						if r.Match.Headers != nil {
-							routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match.Headers = make([]*route.HeaderMatcher, 0)
-							for _, hm := range r.Match.Headers {
-								hmatcher := &route.HeaderMatcher{Name: hm.Name}
-								if hm.ExactMatch != nil {
-									hmatcher.HeaderMatchSpecifier = &route.HeaderMatcher_ExactMatch{ExactMatch: *hm.ExactMatch}
-								}
-								if hm.SafeRegexMatch != nil {
-									hmatcher.HeaderMatchSpecifier = &route.HeaderMatcher_SafeRegexMatch{
-										SafeRegexMatch: &matcher.RegexMatcher{
-											Regex: hm.SafeRegexMatch.Regex,
+							if r.Match.Path != nil {
+								routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match = &route.RouteMatch{PathSpecifier: &route.RouteMatch_Path{Path: *r.Match.Path}}
+							}
+							if r.Match.Regex != nil {
+								routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match = &route.RouteMatch{
+									PathSpecifier: &route.RouteMatch_SafeRegex{
+										SafeRegex: &matcher.RegexMatcher{
+											Regex: r.Match.Regex.Regex,
 											EngineType: &matcher.RegexMatcher_GoogleRe2{
 												GoogleRe2: &matcher.RegexMatcher_GoogleRE2{
 													MaxProgramSize: &wrappers.UInt32Value{
@@ -409,9 +388,32 @@ func parseListener(l apitypes.ListenerConfigType) *listener.Listener {
 												},
 											},
 										},
-									}
+									},
 								}
-								routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match.Headers = append(routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match.Headers, hmatcher)
+							}
+							if r.Match.Headers != nil {
+								routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match.Headers = make([]*route.HeaderMatcher, 0)
+								for _, hm := range r.Match.Headers {
+									hmatcher := &route.HeaderMatcher{Name: hm.Name}
+									if hm.ExactMatch != nil {
+										hmatcher.HeaderMatchSpecifier = &route.HeaderMatcher_ExactMatch{ExactMatch: *hm.ExactMatch}
+									}
+									if hm.SafeRegexMatch != nil {
+										hmatcher.HeaderMatchSpecifier = &route.HeaderMatcher_SafeRegexMatch{
+											SafeRegexMatch: &matcher.RegexMatcher{
+												Regex: hm.SafeRegexMatch.Regex,
+												EngineType: &matcher.RegexMatcher_GoogleRe2{
+													GoogleRe2: &matcher.RegexMatcher_GoogleRE2{
+														MaxProgramSize: &wrappers.UInt32Value{
+															Value: 32,
+														},
+													},
+												},
+											},
+										}
+									}
+									routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match.Headers = append(routeConfig.RouteConfig.VirtualHosts[lastVirtualHost].Routes[lastRoute].Match.Headers, hmatcher)
+								}
 							}
 						}
 						if r.Route != nil {
