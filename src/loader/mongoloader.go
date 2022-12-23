@@ -277,7 +277,10 @@ func parseListener(l apitypes.ListenerConfigType) *listener.Listener {
 						}
 					}
 				}
-				httpp.HttpFilters = append(httpp.HttpFilters, &hcm.HttpFilter{Name: "envoy.filters.http.router"})
+				httpp.HttpFilters = append(httpp.HttpFilters, &hcm.HttpFilter{
+					Name:       "envoy.filters.http.router",
+					ConfigType: &hcm.HttpFilter_TypedConfig{},
+				})
 				if f.TypedConfig.CommonHttpProtocolOptions != nil {
 					httpp.CommonHttpProtocolOptions = &core.HttpProtocolOptions{}
 					if f.TypedConfig.CommonHttpProtocolOptions.MaxHeadersCount != nil {

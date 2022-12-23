@@ -17,7 +17,9 @@ import (
 	endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	auth "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
+	types "github.com/envoyproxy/go-control-plane/pkg/cache/types"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+	resource "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	"github.com/gin-gonic/gin"
 	jsonpb "github.com/golang/protobuf/jsonpb"
 	"github.com/google/uuid"
@@ -1422,15 +1424,22 @@ func GetConfigStatus(ctx *gin.Context) {
 	ctx.Header("Access-Control-Allow-Methods", "GET, PUT, OPTIONS, DELETE")
 	ctx.Header("Access-Control-Allow-Headers", "content-type")
 	if l, c, e, s, err := myload.LoadNode(ctx, node); err == nil {
-		snap := cache.NewSnapshot(node, e, c, nil, l, nil, s)
-		if err := snap.Consistent(); err == nil {
-			ctx.JSON(200, gin.H{
-				"configstatus": "consistent"})
-			return
-		} else {
-			ctx.JSON(200, gin.H{
-				"configstatus": "inconsistent"})
-			return
+		//snap := cache.NewSnapshot(node, e, c, nil, l, nil, s)
+		configMap := make(map[string][]types.Resource)
+		configMap[resource.EndpointType] = e
+		configMap[resource.ClusterType] = c
+		configMap[resource.ListenerType] = l
+		configMap[resource.SecretType] = s
+		if snap, err := cache.NewSnapshot(node, configMap); err == nil {
+			if err := snap.Consistent(); err == nil {
+				ctx.JSON(200, gin.H{
+					"configstatus": "consistent"})
+				return
+			} else {
+				ctx.JSON(200, gin.H{
+					"configstatus": "inconsistent"})
+				return
+			}
 		}
 	} else {
 		ctx.JSON(400, gin.H{
